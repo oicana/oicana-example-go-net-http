@@ -80,20 +80,24 @@ func TestDownloadTemplate(t *testing.T) {
 	assertResponse(t, serve(http.MethodGet, "/templates/unknown", "", nil), http.StatusNotFound, "application/json")
 }
 
-func TestCompileTemplate(t *testing.T) {
-	payload := `{"jsonInputs": [{"key": "data", "value": {"description": "Test table data",
-		"rows": [{"name": "Alice", "one": "A", "two": "B", "three": "C"}]}}], "blobInputs": []}`
-	response := serve(http.MethodPost, "/templates/table/compile", "application/json", []byte(payload))
+func TestCompileSwaggerExample(t *testing.T) {
+	var doc struct {
+		Definitions map[string]struct {
+			Example json.RawMessage `json:"example"`
+		} `json:"definitions"`
+	}
+	if err := json.Unmarshal(serve(http.MethodGet, "/swagger/doc.json", "", nil).Body.Bytes(), &doc); err != nil {
+		t.Fatal(err)
+	}
+	payload := doc.Definitions["CompilationPayload"].Example
+
+	response := serve(http.MethodPost, "/templates/invoice/compile", "application/json", payload)
 	assertResponse(t, response, http.StatusOK, "application/pdf")
 	if !bytes.HasPrefix(response.Body.Bytes(), []byte("%PDF")) {
 		t.Fatal("expected a PDF document")
 	}
-}
-
-func TestPreviewTemplateWithBlob(t *testing.T) {
-	payload := `{"jsonInputs": [], "blobInputs": [{"key": "banner", "blobId": "00000000-0000-0000-0000-000000000000"}]}`
-	response := serve(http.MethodPost, "/templates/invoice/preview", "application/json", []byte(payload))
-	assertResponse(t, response, http.StatusOK, "image/png")
+	assertResponse(t, serve(http.MethodPost, "/templates/invoice/preview", "application/json", payload),
+		http.StatusOK, "image/png")
 }
 
 func TestCompileErrors(t *testing.T) {

@@ -28,7 +28,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	oicana "go.oicana.com/oicana"
 
-	_ "github.com/oicana/oicana-example-go-net-http/docs"
+	"github.com/oicana/oicana-example-go-net-http/docs"
 )
 
 const address = "127.0.0.1:3006"
@@ -70,6 +70,11 @@ func newHandler(templates *templateRegistry, blobs *blobStore) http.Handler {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprint(w, `Visit the swagger documentation at <a href="/swagger/">/swagger/</a>`)
 	})
+	doc := swaggerDoc()
+	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(doc)
+	})
 	mux.Handle("GET /swagger/", httpSwagger.Handler())
 
 	templateHandlers{templates: templates, blobs: blobs}.register(mux)
@@ -77,6 +82,21 @@ func newHandler(templates *templateRegistry, blobs *blobStore) http.Handler {
 	blobHandlers{blobs: blobs}.register(mux)
 
 	return logRequests(mux)
+}
+
+// swag cannot express nested examples, so the compilation payload example is added here.
+func swaggerDoc() []byte {
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(docs.SwaggerInfo.ReadDoc()), &doc); err != nil {
+		panic(err)
+	}
+	payload := doc["definitions"].(map[string]any)["CompilationPayload"].(map[string]any)
+	payload["example"] = json.RawMessage(compilationPayloadExample)
+	out, err := json.Marshal(doc)
+	if err != nil {
+		panic(err)
+	}
+	return out
 }
 
 func logRequests(next http.Handler) http.Handler {

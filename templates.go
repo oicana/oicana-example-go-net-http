@@ -92,6 +92,38 @@ func (h templateHandlers) register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /templates/{templateID}/reset", h.reset)
 }
 
+const compilationPayloadExample = `{
+	"jsonInputs": [{
+		"key": "invoice",
+		"value": {
+			"id": "2025-03-10t172205",
+			"issuingDate": "2025-04-27",
+			"deliveryDate": "2025-04-19",
+			"dueDate": "2025-05-06",
+			"biller": {
+				"name": "Alex Johnson",
+				"title": "Senior Consultant",
+				"company": "Example Solutions GmbH",
+				"vat-id": "DE1234567",
+				"iban": "DE89370400440532013000",
+				"address": {"country": "Germany", "city": "Berlin", "postal-code": "10115", "street": "Sample Street 23"}
+			},
+			"recipient": {
+				"name": "Maria Schmidt",
+				"title": "IT Manager",
+				"vat-id": "DE7654321",
+				"address": {"country": "Germany", "city": "Munich", "postal-code": "80331", "street": "Business Avenue 1"}
+			},
+			"items": [
+				{"date": "2025-04-03", "description": "Wireless keyboard", "quantity": 4, "price": 25},
+				{"date": "2025-04-03", "description": "USB-C cable", "quantity": 2, "price": 45},
+				{"date": "2025-04-03", "description": "Network infrastructure consultation", "dur-min": 120, "price": 200}
+			]
+		}
+	}],
+	"blobInputs": [{"key": "banner", "blobId": "00000000-0000-0000-0000-000000000000"}]
+}`
+
 type compilationPayload struct {
 	JSONInputs []jsonInput `json:"jsonInputs"`
 	BlobInputs []blobInput `json:"blobInputs"`
@@ -99,14 +131,14 @@ type compilationPayload struct {
 
 type jsonInput struct {
 	// The input key
-	Key string `json:"key" example:"data"`
+	Key string `json:"key" example:"invoice"`
 	// Any JSON value, passed to the template as is
 	Value json.RawMessage `json:"value" swaggertype:"object"`
 } //@name JsonInput
 
 type blobInput struct {
 	// The input key for the blob
-	Key string `json:"key" example:"logo"`
+	Key string `json:"key" example:"banner"`
 	// UUID of the blob from the blob storage
 	BlobID uuid.UUID `json:"blobId" swaggertype:"string" format:"uuid" example:"00000000-0000-0000-0000-000000000000"`
 } //@name BlobInput
@@ -131,7 +163,7 @@ func (h templateHandlers) list(w http.ResponseWriter, r *http.Request) {
 //	@Description	Download a packed template.
 //	@Tags			template
 //	@Produce		application/zip
-//	@Param			templateID	path		string	true	"The identifier of the template to download."	example(table)
+//	@Param			templateID	path		string	true	"The identifier of the template to download."	extensions(x-example=table)
 //	@Success		200			{file}		binary
 //	@Failure		404			{object}	errorResponse
 //	@Router			/templates/{templateID} [get]
@@ -154,7 +186,7 @@ func (h templateHandlers) download(w http.ResponseWriter, r *http.Request) {
 //	@Tags			template
 //	@Accept			json
 //	@Produce		application/pdf
-//	@Param			templateID	path		string				true	"The identifier of the template to compile."	example(table)
+//	@Param			templateID	path		string				true	"The identifier of the template to compile."	extensions(x-example=invoice)
 //	@Param			payload		body		compilationPayload	true	"Inputs for template compilation"
 //	@Success		200			{file}		binary
 //	@Failure		400			{object}	errorResponse
@@ -170,7 +202,7 @@ func (h templateHandlers) compile(w http.ResponseWriter, r *http.Request) {
 //	@Tags			template
 //	@Accept			json
 //	@Produce		image/png
-//	@Param			templateID	path		string				true	"The identifier of the template to preview."	example(table)
+//	@Param			templateID	path		string				true	"The identifier of the template to preview."	extensions(x-example=invoice)
 //	@Param			payload		body		compilationPayload	true	"Inputs for template compilation"
 //	@Success		200			{file}		binary
 //	@Failure		400			{object}	errorResponse
@@ -239,7 +271,7 @@ func (h templateHandlers) export(w http.ResponseWriter, r *http.Request, out out
 //
 //	@Description	Remove a template from the cache and free it. The template is unavailable until the service restarts.
 //	@Tags			template
-//	@Param			templateID	path	string	true	"The identifier of the template to reset."	example(table)
+//	@Param			templateID	path	string	true	"The identifier of the template to reset."	extensions(x-example=table)
 //	@Success		204
 //	@Failure		404
 //	@Router			/templates/{templateID}/reset [post]

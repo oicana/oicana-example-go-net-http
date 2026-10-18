@@ -135,7 +135,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "table",
+                        "x-example": "table",
                         "description": "The identifier of the template to download.",
                         "name": "templateID",
                         "in": "path",
@@ -173,7 +173,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "table",
+                        "x-example": "invoice",
                         "description": "The identifier of the template to compile.",
                         "name": "templateID",
                         "in": "path",
@@ -226,7 +226,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "table",
+                        "x-example": "invoice",
                         "description": "The identifier of the template to preview.",
                         "name": "templateID",
                         "in": "path",
@@ -273,7 +273,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "table",
+                        "x-example": "table",
                         "description": "The identifier of the template to reset.",
                         "name": "templateID",
                         "in": "path",
@@ -304,7 +304,7 @@ const docTemplate = `{
                 "key": {
                     "description": "The input key for the blob",
                     "type": "string",
-                    "example": "logo"
+                    "example": "banner"
                 }
             }
         },
@@ -349,7 +349,7 @@ const docTemplate = `{
                 "key": {
                     "description": "The input key",
                     "type": "string",
-                    "example": "data"
+                    "example": "invoice"
                 },
                 "value": {
                     "description": "Any JSON value, passed to the template as is",
