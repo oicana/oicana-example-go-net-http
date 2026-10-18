@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+     - main
+  workflow_dispatch:
+
+jobs:
+  go-ci:
+    name: Format, linting, and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Install the native Oicana library
+        run: echo "CGO_LDFLAGS=$(go run go.oicana.com/oicana/cmd/oicana-install)" >> "$GITHUB_ENV"
+      - name: check format
+        run: test -z "$(gofmt -l .)"
+      - name: check swagger documentation is up to date
+        run: |
+          go tool swag fmt
+          go tool swag init --outputTypes go
+          git diff --exit-code
+      - name: run go vet
+        run: go vet ./...
+      - name: run tests
+        run: go test ./...
+
+  spelling:
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Actions Repository
+      uses: actions/checkout@v6
+    - name: Spell Check Repo
+      uses: crate-ci/typos@v1.35.5
+
+  validate-links:
+    name: Check for dead links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: check readme links
+        run: npx linkinator README.md --config .github/linkinator.config.json
