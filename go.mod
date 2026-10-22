@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
-	go.oicana.com/oicana v0.10.0-rc.1
+	go.oicana.com/oicana v0.10.0
 )
 
 require (
